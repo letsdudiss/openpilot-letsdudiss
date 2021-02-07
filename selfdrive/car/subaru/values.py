@@ -217,6 +217,7 @@ FW_VERSIONS = {
     ],
   },
   CAR.OUTBACK_PREGLOBAL: {
+    # 2017 Outback Premier 2.5i - UDM / @treksler
     # 2017 Outback Limited 3.6r - UDM / @Anthony
     # 2016 Outback Limited 2.5 - UDM / @aeiro
     # 2015 Outback Limited 2.5 - ADM / @Bugsy
@@ -250,6 +251,7 @@ FW_VERSIONS = {
       b'\x00\x00d\x95\x1f@ \x0f',
     ],
     (Ecu.engine, 0x7e0, None): [
+      b'\xb4*@`\a',
       b'\xb4+@p\a',
       b'\xab\"@@\a',
       b'\xa0\x62\x41\x71\x07',
@@ -266,6 +268,9 @@ FW_VERSIONS = {
       b'\xbe\xf2@p\x00',
       b'\xbc\xaf\xe0`\x00',
       b'\xbd\xf2@`\x00',
+    ],
+    (Ecu.fwdRadar, 0x7d0, None): [
+      b'\x00\x00\x00',
     ],
   },
   # Outback with reversed driver torque signal

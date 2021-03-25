@@ -114,7 +114,7 @@ void GLWindow::backlightUpdate(){
   // Update brightness
   float k = (BACKLIGHT_DT / BACKLIGHT_TS) / (1.0f + BACKLIGHT_DT / BACKLIGHT_TS);
 
-  float clipped_brightness = std::min(1023.0f, (ui_state->light_sensor*brightness_m) + brightness_b);
+  float clipped_brightness = std::max(1.0f, std::min(1023.0f, (ui_state->light_sensor*brightness_m) + brightness_b));
   smooth_brightness = clipped_brightness * k + smooth_brightness * (1.0f - k);
   int brightness = smooth_brightness;
 

@@ -172,8 +172,8 @@ int main(int argc, char* argv[]) {
     s->sound->setVolume(fmin(MAX_VOLUME, MIN_VOLUME + s->scene.controls_state.getVEgo() / 5));
 
     // set brightness
-    float clipped_brightness = fmin(512, (s->light_sensor*brightness_m) + brightness_b);
-    smooth_brightness = fmin(255, clipped_brightness * 0.01 + smooth_brightness * 0.99);
+    float clipped_brightness = fmax(1, fmin(512, (s->light_sensor*brightness_m) + brightness_b));
+    smooth_brightness = fmax(1, fmin(255, clipped_brightness * 0.01 + smooth_brightness * 0.99));
     ui_set_brightness(s, (int)smooth_brightness);
 
     update_offroad_layout_state(s, pm);

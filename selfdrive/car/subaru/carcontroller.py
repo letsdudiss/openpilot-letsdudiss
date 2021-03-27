@@ -1,34 +1,8 @@
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.subaru import subarucan
-from selfdrive.car.subaru.values import DBC, PREGLOBAL_CARS, CarControllerParams
+from selfdrive.car.subaru.values import DBC, PREGLOBAL_CARS, CarControllerParams, CAR
 from opendbc.can.packer import CANPacker
 import time
-
-
-class CarControllerParams():
-  def __init__(self):
-    self.STEER_MAX = 2047              # max_steer 4095
-    self.STEER_STEP = 2                # how often we update the steer cmd
-    self.STEER_DELTA_UP = 50           # torque increase per refresh, 0.8s to max
-    self.STEER_DELTA_DOWN = 70         # torque decrease per refresh
-    self.STEER_DRIVER_ALLOWANCE = 60   # allowed driver torque before start limiting
-    self.STEER_DRIVER_MULTIPLIER = 10  # weight driver torque heavily
-    self.STEER_DRIVER_FACTOR = 1       # from dbc
-
-    #SUBARU STOP AND GO - Global
-    self.SNG_DISTANCE_LIMIT = 120      # distance trigger value limit for stop and go (0-255)
-    self.SNG_DISTANCE_DEADBAND = 10     # deadband for SNG lead car refence distance to cater for Close_Distance sensor noises
-    self.THROTTLE_TAP_LIMIT = 5        # send a maximum of 5 throttle tap messages (trial and error)
-    self.THROTTLE_TAP_LEVEL = 5        # send a throttle message with value of 5 (trial and error)
-    self.SNG_DISTANCE_THRESHOLD = 150 
-
-    #SUBARU STOP AND GO - Pre-Global
-    self.SNG_DISTANCE_THRESHOLD_PREGLOBAL = 3 #SnG trigger when lead car distance > 3m
-    self.SNG_DISTANCE_LIMIT_PREGLOBAL = 4  #SnG only trigger if close distance is less than 4
-    
-    #SUBARU NON-EPB
-    self.NON_EPB_STANDSTILL_THRESHOLD = 1000000000  #1 second
-    self.NON_EPB_FAKE_SPEED = 3 #km/h
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -48,7 +22,7 @@ class CarController():
     self.sng_throttle_tap_cnt = 0
     self.sng_resume_acc = False
     self.sng_has_recorded_distance = False
-    self.sng_distance_threshold = self.params.SNG_DISTANCE_LIMIT
+    self.sng_distance_threshold = CarControllerParams.SNG_DISTANCE_LIMIT
 
     #SUBARU STOP AND GO - Pre-Global only
     self.prev_close_distance = -1
@@ -90,7 +64,7 @@ class CarController():
       #Activate ACC Resume with throttle tap
       if (enabled                                                              #Cruise must be activated
           and CS.car_follow                                                    #Must have lead car
-          and CS.close_distance > self.params.SNG_DISTANCE_THRESHOLD_PREGLOBAL #Distance with lead car > 3m (this is due to Preglobal ES's unreliable Close Distance signal)
+          and CS.close_distance > CarControllerParams.SNG_DISTANCE_THRESHOLD_PREGLOBAL #Distance with lead car > 3m (this is due to Preglobal ES's unreliable Close Distance signal)
           and CS.close_distance < 4.5                                          #For safety, SnG will not operate if Close Distance reads more than 4.5m (Pre-global ES's unreliability, sometimes Close Distance shows max-5m when there is a stationary object ahead)
           and CS.close_distance > self.prev_close_distance                     #Distance with lead car is increasing
           and CS.out.standstill                                                #Must be standing still
@@ -126,7 +100,7 @@ class CarController():
       #false positives caused by pedestrians/cyclists crossing the street in front of car
       if (enabled
           and CS.cruise_state == 3 #cruise state == 3 => ACC HOLD state
-          and CS.close_distance > self.params.SNG_DISTANCE_THRESHOLD #lead car distance is within SnG operating range
+          and CS.close_distance > CarControllerParams.SNG_DISTANCE_THRESHOLD #lead car distance is within SnG operating range
           and CS.close_distance < 255
           and CS.close_distance > self.prev_close_distance                     #Distance with lead car is increasing
           and CS.car_follow == 1):
@@ -138,7 +112,7 @@ class CarController():
           and (CS.cruise_state != 3                    #cruise state == 3 => ACC HOLD state
                or CS.CP.carFingerprint == CAR.ASCENT)  #Except for SUBARU ASCENT
           and CS.out.standstill    #car standstill
-          and time.time_ns() > self.standstill_transition_timestamp + self.params.NON_EPB_STANDSTILL_THRESHOLD): #for more than 1 second
+          and time.time_ns() > self.standstill_transition_timestamp + CarControllerParams.NON_EPB_STANDSTILL_THRESHOLD): #for more than 1 second
         #send fake speed to ES, because we know this car has no EPB
         self.sng_send_fake_speed = True
 
@@ -146,14 +120,14 @@ class CarController():
       wheel_speed = -1
       if self.sng_send_fake_speed:
         #only fake wheel speed if ACC engaged and car has come to a full stop for 1 second (to prevent dodgy braking)
-        wheel_speed = self.params.NON_EPB_FAKE_SPEED
+        wheel_speed = CarControllerParams.NON_EPB_FAKE_SPEED
 
       #Send a throttle tap to resume ACC
       throttle_cmd = -1 #normally, just forward throttle msg from ECU
       if self.sng_resume_acc:
         #Send Maximum <THROTTLE_TAP_LIMIT> to get car out of HOLD
-        if self.sng_throttle_tap_cnt < self.params.THROTTLE_TAP_LIMIT:
-          throttle_cmd = self.params.THROTTLE_TAP_LEVEL
+        if self.sng_throttle_tap_cnt < CarControllerParams.THROTTLE_TAP_LIMIT:
+          throttle_cmd = CarControllerParams.THROTTLE_TAP_LEVEL
           self.sng_throttle_tap_cnt += 1
         else:
           self.sng_throttle_tap_cnt = -1

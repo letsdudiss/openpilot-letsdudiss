@@ -13,6 +13,22 @@ class CarControllerParams:
   STEER_DRIVER_MULTIPLIER = 10  # weight driver torque heavily
   STEER_DRIVER_FACTOR = 1       # from dbc
 
+  #SUBARU STOP AND GO - Global
+  SNG_DISTANCE_LIMIT = 120      # distance trigger value limit for stop and go (0-255)
+  SNG_DISTANCE_DEADBAND = 10     # deadband for SNG lead car refence distance to cater for Close_Distance sensor noises
+  THROTTLE_TAP_LIMIT = 5        # send a maximum of 5 throttle tap messages (trial and error)
+  THROTTLE_TAP_LEVEL = 5        # send a throttle message with value of 5 (trial and error)
+  SNG_DISTANCE_THRESHOLD = 150 
+
+  #SUBARU STOP AND GO - Pre-Global
+  SNG_DISTANCE_THRESHOLD_PREGLOBAL = 3 #SnG trigger when lead car distance > 3m
+  SNG_DISTANCE_LIMIT_PREGLOBAL = 4  #SnG only trigger if close distance is less than 4
+    
+  #SUBARU NON-EPB
+  NON_EPB_STANDSTILL_THRESHOLD = 1000000000  #1 second
+  NON_EPB_FAKE_SPEED = 3 #km/h
+
+
 class CAR:
   ASCENT = "SUBARU ASCENT LIMITED 2019"
   IMPREZA = "SUBARU IMPREZA LIMITED 2019"

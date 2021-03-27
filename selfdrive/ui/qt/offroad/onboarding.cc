@@ -1,12 +1,8 @@
 #include <QLabel>
-#include <QString>
 #include <QPainter>
-#include <QScroller>
-#include <QScrollBar>
-#include <QGridLayout>
 #include <QVBoxLayout>
-#include <QQmlContext>
 #include <QQuickWidget>
+#include <QQmlContext>
 #include <QDesktopWidget>
 
 #include "common/params.h"
@@ -16,30 +12,28 @@
 
 
 void TrainingGuide::mouseReleaseEvent(QMouseEvent *e) {
-  int leftOffset = (geometry().width()-1620)/2;
-  int mousex = e->x()-leftOffset;
-  int mousey = e->y();
+  //qDebug() << e->x() << ", " << e->y();
 
   // Check for restart
-  if (currentIndex == (boundingBox.size() - 1) && 1050 <= mousex && mousex <= 1500 &&
-      773 <= mousey && mousey <= 954) {
+  if (currentIndex == (boundingBox.size() - 1) && 200 <= e->x() && e->x() <= 920 &&
+      760 <= e->y() && e->y() <= 960) {
     currentIndex = 0;
-  } else if (boundingBox[currentIndex][0] <= mousex && mousex <= boundingBox[currentIndex][1] &&
-             boundingBox[currentIndex][2] <= mousey && mousey <= boundingBox[currentIndex][3]) {
+  } else if (boundingBox[currentIndex][0] <= e->x() && e->x() <= boundingBox[currentIndex][1] &&
+             boundingBox[currentIndex][2] <= e->y() && e->y() <= boundingBox[currentIndex][3]) {
     currentIndex += 1;
   }
 
   if (currentIndex >= boundingBox.size()) {
     emit completedTraining();
-    return;
   } else {
-    image.load("../assets/training/step" + QString::number(currentIndex) + ".jpg");
+    image.load("../assets/training/step" + QString::number(currentIndex) + ".png");
     update();
   }
 }
 
-TrainingGuide::TrainingGuide(QWidget* parent) : QFrame(parent){
-  image.load("../assets/training/step0.jpg");
+void TrainingGuide::showEvent(QShowEvent *event) {
+  currentIndex = 0;
+  image.load("../assets/training/step0.png");
 }
 
 void TrainingGuide::paintEvent(QPaintEvent *event) {
@@ -60,7 +54,7 @@ TermsPage::TermsPage(QWidget *parent) : QFrame(parent){
   main_layout->setMargin(40);
   main_layout->setSpacing(40);
 
-  QQuickWidget *text = new QQuickWidget(QUrl::fromLocalFile("qt/offroad/text_view.qml"), this);
+  QQuickWidget *text = new QQuickWidget(this);
   text->setResizeMode(QQuickWidget::SizeRootObjectToView);
   text->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   text->setAttribute(Qt::WA_AlwaysStackOnTop);
@@ -70,6 +64,8 @@ TermsPage::TermsPage(QWidget *parent) : QFrame(parent){
 
   QString text_view = util::read_file("../assets/offroad/tc.html").c_str();
   text->rootContext()->setContextProperty("text_view", text_view);
+
+  text->setSource(QUrl::fromLocalFile("qt/offroad/text_view.qml"));
 
   main_layout->addWidget(text);
 
@@ -140,6 +136,7 @@ OnboardingWindow::OnboardingWindow(QWidget *parent) : QStackedWidget(parent) {
     updateActiveScreen();
   });
   addWidget(tr);
+
 
   setStyleSheet(R"(
     * {
